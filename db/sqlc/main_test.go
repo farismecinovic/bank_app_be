@@ -6,20 +6,21 @@ import (
 	"os"
 	"testing"
 
+	"github.com/farismecinovic/bankapp/util"
 	_ "github.com/lib/pq"
-)
-
-const (
-	dbDriver = "postgres"
-	dbSource = "postgresql://root:swordfish@localhost:5432/simple_bank?sslmode=disable"
 )
 
 var testQueries *Queries
 var testDB *sql.DB
 
 func TestMain(m *testing.M) {
+	config, configError := util.LoadConfig("../../")
+	if configError != nil {
+		log.Fatal("Can't load the config!: ", configError)
+	}
+
 	var err error
-	testDB, err = sql.Open(dbDriver, dbSource)
+	testDB, err = sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal("Can't connect to the DB: ", err)
 	}

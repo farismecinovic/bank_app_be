@@ -6,24 +6,23 @@ import (
 
 	"github.com/farismecinovic/bankapp/api"
 	db "github.com/farismecinovic/bankapp/db/sqlc"
+	"github.com/farismecinovic/bankapp/util"
 	_ "github.com/lib/pq"
 )
 
-const (
-	dbDriver     = "postgres"
-	dbSource     = "postgresql://root:swordfish@localhost:5432/simple_bank?sslmode=disable"
-	serverAdress = "0.0.0.0:5050"
-)
-
 func main() {
-	conn, err := sql.Open(dbDriver, dbSource)
+	config, err := util.LoadConfig(".")
+	if err != nil {
+		log.Fatal("Can't load config!", err)
+	}
+	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal("Can't connect to the DB: ", err)
 	}
 
 	store := db.NewStore(conn)
 	server := api.NewServer(store)
-	err = server.Start(serverAdress)
+	err = server.Start(config.ServerAddress)
 	if err != nil {
 		log.Fatal("Can't start the server!", err)
 	}
