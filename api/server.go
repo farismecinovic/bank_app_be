@@ -20,6 +20,8 @@ func NewServer(store *db.Store) *Server {
 	router.DELETE("/accounts/:id", server.deleteAccount)
 	//TODO implement the rest of the account endpoints
 
+	router.POST("/transfers", server.createTransfer)
+
 	server.router = router
 	return server
 }
