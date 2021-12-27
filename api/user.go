@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+	"time"
 
 	db "github.com/farismecinovic/bankapp/db/sqlc"
 	"github.com/farismecinovic/bankapp/util"
@@ -16,6 +17,14 @@ type createUserRequest struct {
 	Password string `json:"password" binding:"required,min=6"`
 	Fullname string `json:"full_name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
+}
+
+type createUserResponse struct {
+	Username         string    `json:"username"`
+	FullName         string    `json:"full_name"`
+	Email            string    `json:"email"`
+	PasswordChangeAt time.Time `json:"password_change_at"`
+	CreatedAt        time.Time `json:"created_at"`
 }
 
 func (server *Server) createUser(ctx *gin.Context) {
@@ -52,11 +61,19 @@ func (server *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, user)
+	res := createUserResponse{
+		Username:         user.Username,
+		FullName:         user.FullName,
+		Email:            user.Email,
+		CreatedAt:        user.CreatedAt,
+		PasswordChangeAt: user.PasswordChangeAt,
+	}
+
+	ctx.JSON(http.StatusOK, res)
 }
 
 type getUserRequest struct {
-	ID int64 `uri:"id" binding:"required,min=1"`
+	Username string `uri:"username" binding:"required"`
 }
 
 func (server *Server) getUser(ctx *gin.Context) {
@@ -66,7 +83,7 @@ func (server *Server) getUser(ctx *gin.Context) {
 		return
 	}
 
-	account, err := server.store.GetAccount(ctx, req.ID)
+	user, err := server.store.GetUser(ctx, req.Username)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -75,6 +92,15 @@ func (server *Server) getUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	ctx.JSON(http.StatusOK, account)
+
+	res := createUserResponse{
+		Username:         user.Username,
+		FullName:         user.FullName,
+		Email:            user.Email,
+		CreatedAt:        user.CreatedAt,
+		PasswordChangeAt: user.PasswordChangeAt,
+	}
+
+	ctx.JSON(http.StatusOK, res)
 
 }
